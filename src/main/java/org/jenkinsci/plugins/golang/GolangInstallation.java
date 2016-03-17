@@ -11,6 +11,7 @@ import hudson.tools.ToolInstallation;
 import hudson.tools.ToolInstaller;
 import hudson.tools.ToolProperty;
 import jenkins.model.Jenkins;
+import jenkins.tasks.SimpleBuildWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.File;
@@ -26,12 +27,11 @@ public class GolangInstallation extends ToolInstallation implements EnvironmentS
         super(name, home, properties);
     }
 
-    @Override
-    public void buildEnvVars(EnvVars env) {
+    public void buildEnvVars(final SimpleBuildWrapper.Context context) {
         String root = getHome();
         if (root != null) {
-            env.put("GOROOT", root);
-            env.put("PATH+GOROOT_BIN", new File(root, "bin").toString());
+            context.env("GOROOT", root);
+            context.env("PATH+GOROOT_BIN", new File(root, "bin").toString());
         }
     }
 

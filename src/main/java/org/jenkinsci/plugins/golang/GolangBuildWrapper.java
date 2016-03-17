@@ -1,21 +1,15 @@
 package org.jenkinsci.plugins.golang;
 
-import hudson.CopyOnWrite;
-import hudson.EnvVars;
-import hudson.Extension;
-import hudson.Launcher;
-import hudson.model.AbstractBuild;
-import hudson.model.AbstractProject;
-import hudson.model.BuildListener;
-import hudson.model.Computer;
-import hudson.tasks.BuildWrapper;
+
+import hudson.*;
+import hudson.model.*;
 import hudson.tasks.BuildWrapperDescriptor;
+import jenkins.tasks.SimpleBuildWrapper;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 import java.io.IOException;
-import java.util.Map;
 
-public class GolangBuildWrapper extends BuildWrapper {
+public class GolangBuildWrapper extends SimpleBuildWrapper {
 
     private final String goVersion;
 
@@ -24,28 +18,20 @@ public class GolangBuildWrapper extends BuildWrapper {
         this.goVersion = goVersion;
     }
 
-    public Environment setUp(AbstractBuild build, Launcher launcher, BuildListener listener) throws IOException, InterruptedException {
+    public void setUp(final Context context, final Run<?, ?> run, final FilePath workspace,
+                      final Launcher launcher, final TaskListener listener, final EnvVars env)
+            throws IOException, InterruptedException {
+
+
         GolangInstallation installation = getGoInstallation();
         if(installation != null) {
-            EnvVars env = build.getEnvironment(listener);
-            env.overrideAll(build.getBuildVariables());
-
             // Get the Go version for this node, installing it if necessary
-            installation = installation.forNode(Computer.currentComputer().getNode(), listener).forEnvironment(env);
-        }
+            installation = installation.forNode(workspace.toComputer().getNode(), listener).forEnvironment(env);
 
-        // Apply the GOROOT and go binaries to PATH
-        final GolangInstallation install = installation;
-        return new Environment() {
-            @Override
-            public void buildEnvVars(Map<String, String> env) {
-                if (install != null) {
-                    EnvVars envVars = new EnvVars();
-                    install.buildEnvVars(envVars);
-                    env.putAll(envVars);
-                }
-            }
-        };
+            // Apply the GOROOT and go binaries to PATH
+            final GolangInstallation install = installation;
+            install.buildEnvVars(context);
+        }
     }
 
     private GolangInstallation getGoInstallation() {

@@ -223,6 +223,10 @@ public class GolangInstaller extends DownloadFromUrlInstaller {
             this.properties = properties;
         }
 
+        public void checkRoles(org.jenkinsci.remoting.RoleChecker checker) {
+            return;
+        }
+
         public String[] call() {
             String[] values = new String[properties.length];
             for (int i = 0; i < properties.length; i++) {
